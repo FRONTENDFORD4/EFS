@@ -1,0 +1,33 @@
+name: automacao-efs
+run-name: EFS
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - images/*.jpg
+      - images/*.jpeg
+      - images/*.png
+      - .github/workflows/main.yml
+jobs:
+  efs-senai:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Instalação do SSH
+        run: sudo apt-get install -y openssh-client
+
+      - name: Adicionar host EC2 ao Known-hosts
+        run: |
+          ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N ''
+          ssh-keyscan -H 54.210.156.59 >> ~/.ssh/known_hosts
+
+      - name: Envio das imagens SCP
+        if: always()
+        run: |
+          chmod 600 labsuser.pem
+          scp -i labsuser.pem images/*.* ec2-user@54.210.156.59:/home/ec2-user/efs
+
+
